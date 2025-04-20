@@ -1,12 +1,35 @@
 // Latin suffixes to add to reversed words
 const latinSuffixes = ['us', 'um', 'it', 'is', 'ae', 'i', 'o', 'em', 'es', 'ibus'];
+const consonantSuffixes = ['us', 'um', 'it', 'is', 'em', 'es']; // Suffixes that start with consonants
+const iEndingSuffixes = ['us', 'um', 'em']; // Specific suffixes for words ending in 'i'
 
 // Protected words that should not be converted
 const protectedWords = ['nar\'sie', 'ratvar'];
 
-// Function to get a random Latin suffix
-function getRandomLatinSuffix() {
-    return latinSuffixes[Math.floor(Math.random() * latinSuffixes.length)];
+// Function to get a consistent suffix based on word content
+function getConsistentSuffix(word) {
+    // Simple hash function to generate a consistent number for each word
+    let hash = 0;
+    for (let i = 0; i < word.length; i++) {
+        hash = ((hash << 5) - hash) + word.charCodeAt(i);
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    
+    // Check if the word ends with 'i' or 'a'
+    const lastChar = word.charAt(word.length - 1).toLowerCase();
+    
+    // Use the appropriate suffix list based on the word's ending
+    let suffixList;
+    if (lastChar === 'i') {
+        suffixList = iEndingSuffixes;
+    } else if (lastChar === 'a') {
+        suffixList = consonantSuffixes;
+    } else {
+        suffixList = latinSuffixes;
+    }
+    
+    // Use the absolute value of the hash to select a suffix
+    return suffixList[Math.abs(hash) % suffixList.length];
 }
 
 // Function to convert a word to Latin Gibberish
@@ -25,8 +48,8 @@ function convertToLatinGibberish(word) {
     // Reverse the word
     const reversed = lowerWord.split('').reverse().join('');
     
-    // Add a random Latin suffix
-    const withSuffix = reversed + getRandomLatinSuffix();
+    // Add a consistent suffix based on the original word
+    const withSuffix = reversed + getConsistentSuffix(lowerWord);
     
     // Capitalize the first letter if the original word was capitalized
     return isCapitalized ? withSuffix.charAt(0).toUpperCase() + withSuffix.slice(1) : withSuffix;
